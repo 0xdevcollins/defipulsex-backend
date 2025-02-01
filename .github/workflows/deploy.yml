@@ -20,38 +20,54 @@ jobs:
         run: |
           # Debug: Print current directory
           echo "Current directory: $(pwd)"
+
           # Get and display list of changed files
           CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only HEAD^ HEAD)
           echo "Files that changed:"
           echo "$CHANGED_FILES"
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No files changed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           # Create directory for changed files
-          mkdir -p ./changed_files
+          mkdir -p changed_files
+
           # Copy each changed file while maintaining structure
-          echo "$CHANGED_FILES" | while read -r file; do
+          while IFS= read -r file; do
             if [ -n "$file" ] && [ -f "$file" ]; then
               echo "Processing file: $file"
-              mkdir -p "./changed_files/$(dirname "$file")"
-              cp "$file" "./changed_files/$file"
-              echo "Copied $file to ./changed_files/$file"
+              target_dir="changed_files/$(dirname "$file")"
+              mkdir -p "$target_dir"
+              cp "$file" "changed_files/$file"
+              echo "Copied $file to changed_files/$file"
             fi
-          done
-          # Set output for next steps
-          echo "has_changes=$([ -n "$CHANGED_FILES" ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          done <<< "$CHANGED_FILES"
 
-      - name: 🐛 Debug changed_files directory
-        run: |
-          echo "Listing contents of changed_files directory:"
-          ls -la ./changed_files
+          # Verify files were copied
+          if [ -d "changed_files" ] && [ "$(ls -A changed_files)" ]; then
+            echo "Files were successfully copied to changed_files directory"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No files were copied to changed_files directory"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+          # List contents recursively
+          echo "Contents of changed_files directory (recursive):"
+          find changed_files -type f
 
       - name: 📂 Sync changed files
-        if: ${{ success() && steps.changed-files.outputs.has_changes == 'true' }}
+        if: steps.changed-files.outputs.has_changes == 'true'
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
           server: 46.202.195.31
           username: defipulsexapi
           password: FEypqGWLlo52tDzxxhJN
-          local_path: "./changed_files/*"
-          remote_path: "/home/defipulsexapi/htdocs/www.api.defipulsex.org"
+          local_path: './changed_files/'  # Changed this to use directory without glob
+          remote_path: '/home/defipulsexapi/htdocs/www.api.defipulsex.org'
           exclude: |
             **/.env
             **/.git*
@@ -60,5 +76,11 @@ jobs:
             .github
             **/vendor/**
 
-      - name: 🚀 Deployment successful
-        run: echo "Deployment to server was successful!"
+      - name: 🚀 Deployment status
+        if: always()
+        run: |
+          if [ "${{ steps.changed-files.outputs.has_changes }}" == "true" ]; then
+            echo "Deployment completed with files"
+          else
+            echo "No files to deploy"
+          fi
