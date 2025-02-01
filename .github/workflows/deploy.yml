@@ -39,7 +39,13 @@ jobs:
           echo "Contents of changed_files directory:"
           ls -la ./changed_files
 
+      - name: 🐛 Debug changed_files directory
+        run: |
+          echo "Listing contents of changed_files directory:"
+          ls -la ./changed_files
+
       - name: 📂 Sync changed files
+        if: ${{ success() && files != '' }} # Only run if there are changes
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
           server: 46.202.195.31
