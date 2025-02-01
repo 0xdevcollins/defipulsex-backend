@@ -69,7 +69,7 @@ jobs:
           server: 46.202.195.31
           username: defipulsexapi
           password: FEypqGWLlo52tDzxxhJN
-          local_path: './staging/'
+          local_path: './staging/.'
           remote_path: '/home/defipulsexapi/htdocs/www.api.defipulsex.org'
           sftp_only: true
           sftpArgs: '-o ConnectTimeout=5'
