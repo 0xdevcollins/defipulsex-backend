@@ -13,11 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            PlanSeeder::class,        // Assuming PlanSeeder exists
+            TradeSeeder::class,       // Assuming TradeSeeder exists
+            TransactionSeeder::class, // Assuming TransactionSeeder exists
+            DepositSeeder::class,     // Assuming DepositSeeder exists
+            WithdrawalSeeder::class,  // Assuming WithdrawalSeeder exists
+            BotLogSeeder::class,       // Assuming BotLogSeeder exists
+            WalletSeeder::class
         ]);
+
     }
 }
