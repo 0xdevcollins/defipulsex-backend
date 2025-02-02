@@ -1,24 +1,38 @@
 name: 🚀 Deploy Gridape API on Push
+
 on:
   push:
     branches:
       - main
+
 jobs:
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
+
     steps:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Changed to 0 to fetch all history
+          fetch-depth: 0  # Fetch all history for accurate diff
+
+      - name: 🔍 Get last successful deployment commit
+        id: last-successful-commit
+        run: |
+          if [ -f .last_successful_deploy ]; then
+            LAST_SUCCESSFUL_SHA=$(cat .last_successful_deploy)
+            echo "Last successful deployment commit: $LAST_SUCCESSFUL_SHA"
+          else
+            LAST_SUCCESSFUL_SHA=$(git rev-parse HEAD~1)  # Fallback to previous commit
+            echo "No previous deployment found. Using previous commit: $LAST_SUCCESSFUL_SHA"
+          fi
+          echo "last_successful_sha=$LAST_SUCCESSFUL_SHA" >> $GITHUB_OUTPUT
 
       - name: 🔍 Prepare changed files for deployment
         id: changed-files
         run: |
-          # Get the last successful deployment commit
-          LAST_SUCCESSFUL_SHA=$(git rev-list -n 1 refs/remotes/origin/main)
-          echo "Last successful deployment: $LAST_SUCCESSFUL_SHA"
+          LAST_SUCCESSFUL_SHA="${{ steps.last-successful-commit.outputs.last_successful_sha }}"
+          echo "Comparing changes since commit: $LAST_SUCCESSFUL_SHA"
 
           # Get all changed files since last successful deployment
           CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only $LAST_SUCCESSFUL_SHA HEAD)
@@ -54,9 +68,6 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
 
-          # Move into staging directory
-          cd staging
-
           # List contents recursively from inside staging
           echo "Contents of staging directory (recursive):"
           find . -type f
@@ -79,6 +90,12 @@ jobs:
             **/node_modules/**
             .github
             **/vendor/**
+
+      - name: 🚀 Update last successful deployment commit
+        if: steps.changed-files.outputs.has_changes == 'true'
+        run: |
+          echo "${{ github.sha }}" > .last_successful_deploy
+          echo "Updated last successful deployment commit to ${{ github.sha }}"
 
       - name: 🚀 Deployment status
         if: always()
