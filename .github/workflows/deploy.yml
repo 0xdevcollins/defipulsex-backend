@@ -1,10 +1,8 @@
 name: 🚀 Deploy Gridape API on Push
-
 on:
   push:
     branches:
       - main
-
 jobs:
   web-deploy:
     name: 🎉 Deploy
@@ -13,16 +11,17 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0  # Changed to 0 to fetch all history
 
       - name: 🔍 Prepare changed files for deployment
         id: changed-files
         run: |
-          # Debug: Print current directory
-          echo "Current directory: $(pwd)"
+          # Get the last successful deployment commit
+          LAST_SUCCESSFUL_SHA=$(git rev-list -n 1 refs/remotes/origin/main)
+          echo "Last successful deployment: $LAST_SUCCESSFUL_SHA"
 
-          # Get and display list of changed files
-          CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only HEAD^ HEAD)
+          # Get all changed files since last successful deployment
+          CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only $LAST_SUCCESSFUL_SHA HEAD)
           echo "Files that changed:"
           echo "$CHANGED_FILES"
 
