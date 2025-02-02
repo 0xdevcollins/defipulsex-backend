@@ -19,32 +19,88 @@ class TradeController extends BaseController
 
         $trades = $user->trades;
 
-        $tradesData = $trades->map(function ($trade) {
+        $tradeData = $trades->map(function ($trade) {
             $progress = 0;
-            $returnPercent = 0;
 
-            if ($trade->state == 'completed') {
-                $progress = 100;
-                $returnPercent = 100;
-            } elseif ($trade->state == 'active' && $trade->start_date && $trade->end_date) {
+            switch ($trade->state) {
+                case 'completed':
+                    $progress = 100;
+                    break;
+
+                case 'active':
+                    if ($trade->start_date && $trade->end_date) {
+                        $startDate = Carbon::parse($trade->start_date);
+                        $endDate = Carbon::parse($trade->end_date);
+                        $totalDuration = $endDate->diffInSeconds($startDate);
+                        $elapsedDuration = Carbon::now()->diffInSeconds($startDate);
+
+                        $progress = min(100, ($elapsedDuration / $totalDuration) * 100);
+                    }
+                    break;
+
+                case 'pending':
+                    $progress = 0;
+                    break;
+
+                case 'failed':
+                    $progress = 0;
+                    break;
+
+                default:
+                    $progress = 0;
+                    break;
+            }
+
+            $progress = round($progress, 2);
+
+            return [
+                'planName' => $trade->plan ? $trade->plan->name : '',
+                'amount' => $trade->amount,
+                'returnPercent' =>  $trade->plan ? $trade->plan->percent_return : '',
+                'progress' => $progress,
+                'status' => $trade->state,
+                'date' => $trade->created_at->toDateString(),
+            ];
+        });
+
+        return $this->sendResponse($tradeData, 'Trades retrieved successfully');
+    }
+    public function active()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return $this->sendError('User not found');
+        }
+
+        // Fetch only active trades
+        $trades = $user->trades->where('state', 'active');
+
+        // Reset keys to get sequential array
+        $tradeData = $trades->values()->map(function ($trade) {
+            $progress = 0;
+
+            if ($trade->start_date && $trade->end_date) {
                 $startDate = Carbon::parse($trade->start_date);
                 $endDate = Carbon::parse($trade->end_date);
                 $totalDuration = $endDate->diffInSeconds($startDate);
                 $elapsedDuration = Carbon::now()->diffInSeconds($startDate);
 
                 $progress = min(100, ($elapsedDuration / $totalDuration) * 100);
-
-                $returnPercent = $progress;
             }
+
+            $progress = round($progress, 2);
+
             return [
                 'planName' => $trade->plan ? $trade->plan->name : '',
-                'amount' => $trade->amount,
-                'returnPercent' => $returnPercent,
+                'amount' => number_format($trade->amount, 2, '.', ''),
+                'returnPercent' => $trade->plan ? $trade->plan->percent_return : 0,
                 'progress' => $progress,
+                'status' => $trade->state,
                 'date' => $trade->created_at->toDateString(),
             ];
         });
 
-        return $this->sendResponse($tradesData, 'Trades retrieved successfully');
+        return $this->sendResponse($tradeData, 'Active trades retrieved successfully');
     }
 }

@@ -60,4 +60,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Trade::class);
     }
+
+    public function plans()
+    {
+        return $this->hasMany(Plan::class);
+    }
+
+
 }
