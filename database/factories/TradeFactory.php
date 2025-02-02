@@ -20,9 +20,9 @@ class TradeFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'plan_id' => Plan::factory(),
-            'transaction_id' => Transaction::factory()->nullable(),
+            'user_id' => User::first()->id,
+            'plan_id' => Plan::inRandomOrder()->first()->id,
+            'transaction_id' => optional(Transaction::inRandomOrder()->first())->id,
             'amount' => $this->faker->randomFloat(2, 100, 10000),
             'state' => $this->faker->randomElement(['pending', 'active', 'completed', 'failed']),
             'start_date' => $this->faker->dateTimeBetween('-1 month', 'now'),

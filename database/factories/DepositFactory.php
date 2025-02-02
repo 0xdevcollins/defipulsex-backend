@@ -18,7 +18,7 @@ class DepositFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => User::first()->id,
             'amount' => $this->faker->randomFloat(2, 100, 10000),
             'status' => $this->faker->randomElement(['completed', 'pending', 'failed']),
             'deposited_at' => $this->faker->optional()->dateTimeBetween('-1 month', 'now'),

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\WalletController;
 use Illuminate\Http\Request;
@@ -20,5 +21,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/wallets', [WalletController::class, 'create']);
     Route::get('/wallets', [WalletController::class, 'listWallets']);
     Route::get('/user', [UserController::class, 'show']);
+    Route::get('/transactions', [TransactionController::class, 'index']);
 });
 

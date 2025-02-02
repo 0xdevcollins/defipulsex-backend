@@ -47,7 +47,17 @@ class User extends Authenticatable
         ];
     }
 
-    public function wallets () {
-        $this->hasMany(Wallet::class);
+    public function wallets()
+    {
+        return $this->hasMany(Wallet::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+    public function trades()
+    {
+        return $this->hasMany(Trade::class);
     }
 }

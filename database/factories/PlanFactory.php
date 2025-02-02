@@ -23,7 +23,10 @@ class PlanFactory extends Factory
             'fixed_amount' => $this->faker->numberBetween(1000, 10000),
             'percent_return' => $this->faker->numberBetween(5, 30),
             'duration' => $this->faker->numberBetween(30, 365),
-            'description' => $this->faker->sentence(10),
+            'description' => json_encode([
+                'short_description' => $this->faker->sentence(5),  // 5 words sentence
+                'long_description' => $this->faker->paragraph(2),  // 2 paragraph long description
+            ]),
         ];
     }
 }

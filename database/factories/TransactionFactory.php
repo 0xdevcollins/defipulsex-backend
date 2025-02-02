@@ -18,7 +18,7 @@
         public function definition(): array
         {
             return [
-                'user_id' => User::factory(),
+                'user_id' => User::first()->id,
                 'type' => $this->faker->randomElement(['deposit', 'withdrawal', 'transfer', 'payment']),
                 'amount' => $this->faker->randomFloat(2, 100, 10000),
                 'status' => $this->faker->randomElement(['completed', 'pending', 'failed']),
