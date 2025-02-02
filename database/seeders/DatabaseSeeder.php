@@ -14,8 +14,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PlanSeeder::class,        // Assuming PlanSeeder exists
-            TradeSeeder::class,       // Assuming TradeSeeder exists
+            PlanSeeder::class,
+            TradeSeeder::class,
             TransactionSeeder::class, // Assuming TransactionSeeder exists
             DepositSeeder::class,     // Assuming DepositSeeder exists
             WithdrawalSeeder::class,  // Assuming WithdrawalSeeder exists
