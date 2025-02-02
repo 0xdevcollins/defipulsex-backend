@@ -13,53 +13,53 @@ jobs:
         with:
           fetch-depth: 0  # Changed to 0 to fetch all history
 
-      - name: 🔍 Prepare changed files for deployment
-        id: changed-files
-        run: |
-          # Get the last successful deployment commit
-          LAST_SUCCESSFUL_SHA=$(git rev-list -n 1 refs/remotes/origin/main)
-          echo "Last successful deployment: $LAST_SUCCESSFUL_SHA"
+      # - name: 🔍 Prepare changed files for deployment
+      #   id: changed-files
+      #   run: |
+      #     # Get the last successful deployment commit
+      #     LAST_SUCCESSFUL_SHA=$(git rev-list -n 1 refs/remotes/origin/main)
+      #     echo "Last successful deployment: $LAST_SUCCESSFUL_SHA"
 
-          # Get all changed files since last successful deployment
-          CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only $LAST_SUCCESSFUL_SHA HEAD)
-          echo "Files that changed:"
-          echo "$CHANGED_FILES"
+      #     # Get all changed files since last successful deployment
+      #     CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only $LAST_SUCCESSFUL_SHA HEAD)
+      #     echo "Files that changed:"
+      #     echo "$CHANGED_FILES"
 
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No files changed"
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+      #     if [ -z "$CHANGED_FILES" ]; then
+      #       echo "No files changed"
+      #       echo "has_changes=false" >> $GITHUB_OUTPUT
+      #       exit 0
+      #     fi
 
-          # Create directory for changed files
-          mkdir -p staging
+      #     # Create directory for changed files
+      #     mkdir -p staging
 
-          # Copy each changed file while maintaining structure
-          while IFS= read -r file; do
-            if [ -n "$file" ] && [ -f "$file" ]; then
-              echo "Processing file: $file"
-              target_dir="staging/$(dirname "$file")"
-              mkdir -p "$target_dir"
-              cp "$file" "staging/$file"
-              echo "Copied $file to staging/$file"
-            fi
-          done <<< "$CHANGED_FILES"
+      #     # Copy each changed file while maintaining structure
+      #     while IFS= read -r file; do
+      #       if [ -n "$file" ] && [ -f "$file" ]; then
+      #         echo "Processing file: $file"
+      #         target_dir="staging/$(dirname "$file")"
+      #         mkdir -p "$target_dir"
+      #         cp "$file" "staging/$file"
+      #         echo "Copied $file to staging/$file"
+      #       fi
+      #     done <<< "$CHANGED_FILES"
 
-          # Verify files were copied
-          if [ -d "staging" ] && [ "$(ls -A staging)" ]; then
-            echo "Files were successfully copied to staging directory"
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "No files were copied to staging directory"
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          fi
+      #     # Verify files were copied
+      #     if [ -d "staging" ] && [ "$(ls -A staging)" ]; then
+      #       echo "Files were successfully copied to staging directory"
+      #       echo "has_changes=true" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "No files were copied to staging directory"
+      #       echo "has_changes=false" >> $GITHUB_OUTPUT
+      #     fi
 
-          # Move into staging directory
-          cd staging
+      #     # Move into staging directory
+      #     cd staging
 
-          # List contents recursively from inside staging
-          echo "Contents of staging directory (recursive):"
-          find . -type f
+      #     # List contents recursively from inside staging
+      #     echo "Contents of staging directory (recursive):"
+      #     find . -type f
 
       - name: 📂 Sync changed files
         if: steps.changed-files.outputs.has_changes == 'true'
